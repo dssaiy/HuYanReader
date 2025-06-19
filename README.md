@@ -1,5 +1,6 @@
 # HuYanReader
-一个简单且免费的摸鱼阅读器
+一个简单且免费的摸鱼阅读器  
+[点我下载 Release 版本](https://github.com/dssaiy/HuYanReader/releases/tag/v0.0.1)
 
 ## 项目简介
 
