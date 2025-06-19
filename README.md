@@ -1,5 +1,6 @@
 # HuYanReader
 一个简单且免费的摸鱼阅读器  
+目前只能在win上使用，下载HuYanReader.rar解压即用  
 [点我下载 Release 版本](https://github.com/dssaiy/HuYanReader/releases/tag/v0.0.1)
 
 ## 项目简介
