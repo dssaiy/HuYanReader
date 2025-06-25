@@ -20,6 +20,7 @@
 #include "SettingsDialog.h"
 #include "QHotkey.h" 
 #include "chapterdialog.h"
+#include "WebEngineView.h"
 
 class MainWindow : public QMainWindow {
 	Q_OBJECT
@@ -40,7 +41,6 @@ protected:
 
 private:
 	
-	void initUI();
 	void initTrayIcon();
 	void initHotkey();
 	
@@ -58,17 +58,21 @@ private:
 	
 	QSystemTrayIcon* trayIcon;
 	QMenu* contextMenu;
-	QAction* restoreAction;
 	QAction* exitAction;
-	QHotkey* m_hotkeyMainwindow;
+	QAction* m_openWebEngineAction;
+	QHotkey* m_hotkeyQuit;
+	QHotkey* m_hotkeyBoss;
+	WebEngineView* m_webView;
+	bool m_windowsVisible;
+	bool m_readerViewActive;
+	bool m_webViewActive;
 
 private slots:
 	
-	void restoreWindow();
-	void showContextMenu(const QPoint& pos);
-
 	void onChapterSelectClicked();
 	void onChapterSelected(int pageIndex);
+	void openWebBrowser();
+	void toggleAllWindows();
 
 };
 

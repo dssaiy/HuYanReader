@@ -1,4 +1,5 @@
-<RCC>
-    <qresource prefix="MainWindow">
-    </qresource>
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/images">
+    <file alias="icon.ico">../ico/icon.ico</file>
+</qresource>
 </RCC>

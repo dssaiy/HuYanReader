@@ -21,7 +21,7 @@ set(CMAKE_AUTOUIC ON)  # **开启 UI 自动处理**
 set(CMAKE_AUTORCC ON)  # **开启资源文件自动处理**
 
 # 查找 Qt5 组件
-find_package(Qt5 COMPONENTS Core Gui Widgets WebEngineWidgets REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui Widgets WebEngineWidgets PrintSupport REQUIRED)
 
 # UI 相关
 set(UI_FILES src/SettingsDialog.ui)
@@ -30,13 +30,14 @@ set(UI_FILES src/SettingsDialog.ui)
 qt5_wrap_ui(UI_HEADERS ${UI_FILES})
 
 # 处理 Qt 资源文件
-qt5_add_resources(QRC_FILES src/mainwindow.qrc)
+qt5_add_resources(QRC_FILES resources/mainwindow.qrc)
 
 # **重要：确保生成的 UI 头文件能够被找到**
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 set(MOC_HEADERS
     src/chapterdialog.h
+    src/WebEngineView.h
 )
 
 qt5_wrap_cpp(MOC_SRCS ${MOC_HEADERS})  # 生成 MOC 文件
@@ -46,6 +47,8 @@ add_executable(ProtectEye WIN32
     src/main.cpp
     src/chapterdialog.cpp
     src/chapterdialog.h
+    src/WebEngineView.cpp
+    src/WebEngineView.h
     src/mainwindow.cpp
     src/mainwindow.h
     src/settings.cpp
@@ -71,7 +74,7 @@ set_target_properties(ProtectEye PROPERTIES
 
 
 # 链接 Qt 模块
-target_link_libraries(ProtectEye PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::WebEngineWidgets)
+target_link_libraries(ProtectEye PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::WebEngineWidgets Qt5::PrintSupport)
 
 # **QHotkey 处理**
 set(QHOTKEY_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/QHotkey)

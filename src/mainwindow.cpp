@@ -1,13 +1,9 @@
-﻿#include <QMenuBar>
-#include <QFileDialog>
-#include <QTextStream>
+﻿#include <QTextStream>
 #include <QMessageBox>
-#include <QRandomGenerator> 
+#include <QRandomGenerator>
 #include <QTextLayout>
 #include <QApplication>
 #include <QTextBlock>
-#include <QPushButton>
-#include <QVBoxLayout>
 #include <algorithm>
 
 #include "mainwindow.h"
@@ -15,194 +11,143 @@
 
 MainWindow::MainWindow(QWidget* parent)
 	: QMainWindow(parent),
-	m_hotkeyMainwindow(nullptr),
-	settings(new Settings()),  
+	m_hotkeyQuit(nullptr),
+	m_hotkeyBoss(nullptr),
+	settings(new Settings()),
 	settingsDialog(new SettingsDialog(settings)),
 	tdm(new TextDocumentManager(settings)),
 	view(new TextReaderView()),
 	model(new TextDocumentModel()),
 	trayIcon(new QSystemTrayIcon(this)),
 	contextMenu(new QMenu(this)),
-	restoreAction(new QAction("Restore", this)),
-	exitAction(new QAction("Exit", this))
-{  
-
-	
+	exitAction(new QAction("Exit", this)),
+	m_openWebEngineAction(new QAction("Open Web Browser", this)),
+	m_webView(new WebEngineView()),
+	m_windowsVisible(true),
+	m_readerViewActive(false),
+	m_webViewActive(false)
+{
 	setAttribute(Qt::WA_TranslucentBackground);
 
-	initUI();
-
 	initTrayIcon();
-
 	initHotkey();
-	
-	
 
 	tdm->linkViewAndModel(view, model);
 
-	
-	
 	connect(settings, &Settings::settingsChanged, tdm, &TextDocumentManager::applySettings);
-
 }
 
 MainWindow::~MainWindow() {
-	
 	if (view) {
 		view->close();
 		delete view;
-		view = nullptr;  
+		view = nullptr;
+	}
+
+	if (m_webView) {
+		m_webView->close();
+		delete m_webView;
+		m_webView = nullptr;
 	}
 
 	if (tdm) {
 		delete tdm;
-		tdm = nullptr;  
+		tdm = nullptr;
 	}
 
 	if (model) {
 		delete model;
-		model = nullptr;  
+		model = nullptr;
 	}
-	
 
 	if (trayIcon->isVisible()) {
 		trayIcon->hide();
 	}
 
-	if (m_hotkeyMainwindow) {
-		delete m_hotkeyMainwindow;
-		m_hotkeyMainwindow = nullptr;
+	if (m_hotkeyQuit) {
+		delete m_hotkeyQuit;
+		m_hotkeyQuit = nullptr;
+	}
+	if (m_hotkeyBoss) {
+		delete m_hotkeyBoss;
+		m_hotkeyBoss = nullptr;
 	}
 
 	if (settings) {
 		delete settings;
 		settings = nullptr;
 	}
-	
 }
 
 void MainWindow::initHotkey() {
-	m_hotkeyMainwindow = new QHotkey(QKeySequence("Ctrl+ALT+Q"), true, this);
-	if (!m_hotkeyMainwindow->isRegistered()) {
-		QMessageBox::warning(nullptr, "Warning", "hot key registration failed!");
+	// Quit Application Hotkey
+	m_hotkeyQuit = new QHotkey(QKeySequence("Ctrl+Alt+Q"), true, this);
+	if (!m_hotkeyQuit->isRegistered()) {
+		QMessageBox::warning(nullptr, "Warning", "Quit hotkey (Ctrl+Alt+Q) registration failed!");
 	}
+	connect(m_hotkeyQuit, &QHotkey::activated, qApp, &QApplication::quit);
 
-	QObject::connect(m_hotkeyMainwindow, &QHotkey::activated, qApp, &QApplication::quit);
+	// Boss Key Hotkey
+	m_hotkeyBoss = new QHotkey(QKeySequence("Ctrl+Alt+M"), true, this);
+	if (!m_hotkeyBoss->isRegistered()) {
+		QMessageBox::warning(nullptr, "Warning", "Boss key (Ctrl+Alt+M) registration failed!");
+	}
+	connect(m_hotkeyBoss, &QHotkey::activated, this, &MainWindow::toggleAllWindows);
+
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
-	
-	if (!trayIcon->isVisible())
-	{
-		trayIcon->show();
-	}
-	tdm->tableView()->hide();
-	this->hide();
-	event->ignore();  
-	
-	
-
+	// Since there is no main window, this might not be triggered.
+	// We can quit the app from the tray menu.
+	event->ignore();
 }
 
 
 void MainWindow::changeEvent(QEvent* event) {
-	if (event->type() == QEvent::WindowStateChange) {
-		if (isMinimized()) {
-			
-			hide();
-			if (!trayIcon->isVisible())
-			{
-				trayIcon->show();
-			}
-		}
-	}
+	// This is not needed anymore as the window is not visible.
 	QMainWindow::changeEvent(event);
 }
 
 void MainWindow::initTrayIcon() {
-	trayIcon->setToolTip("My Application");
-	trayIcon->setIcon(QIcon("E:\\code\\cProject\\protectEYE\\images\\thief.png")); 
-	
+	trayIcon->setToolTip("Huyan Reader");
+	trayIcon->setIcon(QIcon(":/images/icon.ico")); // Use resource path
 	createTrayMenu();
+	trayIcon->show();
 }
 
-void MainWindow::initUI() {
-
-	
-	QPushButton* settingsButton = new QPushButton("Settings", this);
-	settingsButton->setStyleSheet("QPushButton { padding: 5px; }");
-
-	QPushButton* menuButton = new QPushButton("Menu", this);
-	menuButton->setStyleSheet("QPushButton { padding: 5px; }");
-
-	QPushButton* studyButton = new QPushButton("study", this);
-	studyButton->setStyleSheet("QPushButton { padding: 5px; }");
-
-	
-	QVBoxLayout* layout = new QVBoxLayout();
-	
-	layout->addWidget(settingsButton);  
-	layout->addWidget(menuButton);  
-	layout->addWidget(studyButton);  
-
-	QWidget* centralWidget = new QWidget(this);
-	centralWidget->setLayout(layout);
-	setCentralWidget(centralWidget);
-
-	
-	connect(settingsButton, &QPushButton::clicked, this, [this]() {
-		settingsDialog->exec();
-		});
-
-	
-	connect(studyButton, &QPushButton::clicked, this, &MainWindow::test);
-
-	connect(menuButton, &QPushButton::clicked, this, &MainWindow::onChapterSelectClicked);
-}
-
+//void MainWindow::initUI() {
+//	// This is now empty as we have no main UI.
+//}
 
 void MainWindow::test() {
-
+	m_readerViewActive = true;
 	tdm->tableView()->show();
 }
 
 void MainWindow::createTrayMenu() {
+	QAction* settingsAction = contextMenu->addAction("Settings");
+	connect(settingsAction, &QAction::triggered, this, [this]() {
+		settingsDialog->exec();
+	});
 
+	QAction* menuAction = contextMenu->addAction("Menu");
+	connect(menuAction, &QAction::triggered, this, &MainWindow::onChapterSelectClicked);
 
-	
-	
-	
+	QAction* startAction = contextMenu->addAction("Start Reading");
+	connect(startAction, &QAction::triggered, this, &MainWindow::test);
 
-	
-	exitAction = contextMenu->addAction("Exit");
+	contextMenu->addSeparator();
+
+	connect(m_openWebEngineAction, &QAction::triggered, this, &MainWindow::openWebBrowser);
+	contextMenu->addAction(m_openWebEngineAction);
+
+	contextMenu->addSeparator();
+
 	connect(exitAction, &QAction::triggered, qApp, &QApplication::quit);
+	contextMenu->addAction(exitAction);
 
-	
 	trayIcon->setContextMenu(contextMenu);
-
-	
-	connect(trayIcon, &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason) {
-		if (reason == QSystemTrayIcon::DoubleClick) { 
-			restoreWindow();
-		}
-		});
-
-	trayIcon->show();
 }
-
-void MainWindow::restoreWindow() {
-	
-	showNormal();
-	activateWindow();  
-	raise();  
-
-}
-
-void MainWindow::showContextMenu(const QPoint& pos) {
-	
-	contextMenu->exec(mapToGlobal(pos));
-}
-
 
 void MainWindow::onChapterSelectClicked()
 {
@@ -211,12 +156,29 @@ void MainWindow::onChapterSelectClicked()
 	ChapterDialog dialog(charIndexMap, this);
 	connect(&dialog, &ChapterDialog::chapterSelected, this, &MainWindow::onChapterSelected);
 
-	dialog.exec(); 
+	dialog.exec();
 }
 
 void MainWindow::onChapterSelected(int pageIndex)
 {
 	tdm->tableModel()->setCurrentPage(pageIndex);
+}
+
+void MainWindow::openWebBrowser()
+{
+	m_webViewActive = true;
+	m_webView->show();
+}
+
+void MainWindow::toggleAllWindows()
+{
+	m_windowsVisible = !m_windowsVisible;
+
+	if (m_readerViewActive) {
+		view->setVisible(m_windowsVisible);
+	}
 	
-	
+	if (m_webViewActive) {
+		m_webView->setVisible(m_windowsVisible);
+	}
 }

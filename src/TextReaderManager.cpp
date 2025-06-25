@@ -5,7 +5,7 @@ TextDocumentManager::TextDocumentManager(Settings* settings, QObject* parent)
 	: QObject(parent),
 	m_Model(nullptr),
 	m_View(nullptr),
-	m_Settings(settings)  // 传入已有的 Settings
+	m_Settings(settings)  // 械 Settings
 	//m_currentPage(0)
 {
 	if (m_Settings)
@@ -13,7 +13,7 @@ TextDocumentManager::TextDocumentManager(Settings* settings, QObject* parent)
 		m_Settings->loadSettings();
 	}
 	m_Settings->getpSettings()->beginGroup("User");
-	// 从配置文件加载设置
+	// 募
 	m_currentPage = m_Settings->getpSettings()->value("currentPage", 0).toInt();
 	m_Settings->getpSettings()->endGroup();
 
@@ -24,10 +24,10 @@ TextDocumentManager::TextDocumentManager(Settings* settings, QObject* parent)
 TextDocumentManager::~TextDocumentManager()
 {
 	m_Settings->getpSettings()->beginGroup("User");
-	// 保存设置到配置文件
+	// 玫募
 	QString feet = QString::number(m_Model->getCurrentPage());
 	m_Settings->getpSettings()->setValue("currentPage", feet);
-	// 立即写入磁盘
+	// 写
 	m_Settings->getpSettings()->sync();
 	m_Settings->getpSettings()->endGroup();
 }
@@ -38,10 +38,10 @@ void TextDocumentManager::openFile()
 
 	QString filepath = m_Settings->getNovelPath();
 
-	// 加载文件
-	if (m_Model->loadFile(filepath)) {  // 确保 `loadFile()` 返回 `bool`
+	// 募
+	if (m_Model->loadFile(filepath)) {
 		m_View->setTotalPages(m_Model->getTotalPages());
-		//m_currentPage = 0;  // 打开文件后，从第一页开始
+		//m_currentPage = 0;
 		//m_View->showPage(m_Model->getPageContent(m_currentPage), m_currentPage);
 		//m_View->show();
 	}
@@ -61,7 +61,7 @@ void TextDocumentManager::nextPage()
 
 void TextDocumentManager::prevPage()
 {
-	if (m_Model->getCurrentPage() > 0) {  // 允许翻到第 0 页
+	if (m_Model->getCurrentPage() > 0) { 
 		m_Model->setCurrentPage(m_Model->getCurrentPage()-1);
 		m_View->showPage(m_Model->getPageContent(m_Model->getCurrentPage()), m_Model->getCurrentPage());
 	}
@@ -71,16 +71,14 @@ void TextDocumentManager::applySettings()
 {
 	if (!m_Settings || !m_View || !m_Model)
 		return;
-	
-	// 应用到 Model
+
 	//m_Model->setCharactersPerPage(m_Settings->getLinesPerPage());
 	m_Model->setCurrentPage(m_currentPage);
 	m_Model->setMenuEncoding(m_Settings->getMenuEncoding());
 	m_Model->setEncoding(m_Settings->getEncoding());
 	m_Model->setLinesPerPage(m_Settings->getLinesPerPage());
-	m_Model->reloadFile(m_Settings->getNovelPath());  // 重新加载文本
+	m_Model->reloadFile(m_Settings->getNovelPath());  
 
-	// 应用到 View
 	m_View->setFontAndBackgroundColor(m_Settings->getFontColor(), m_Settings->getBackgroundColor());
 
 	m_View->setWindowOpacity(m_Settings->getOpacity());
@@ -97,7 +95,7 @@ void TextDocumentManager::linkViewAndModel(TextReaderView* pTableView, TextDocum
 	if (!pTableModel || !pTableView)
 		return;
 
-	// 先断开旧的连接，防止重复绑定
+	// 榷峡傻樱止馗
 	if (m_View) {
 		disconnect(m_View, &TextReaderView::nextPageRequested, this, &TextDocumentManager::nextPage);
 		disconnect(m_View, &TextReaderView::previousPageRequested, this, &TextDocumentManager::prevPage);
@@ -108,7 +106,7 @@ void TextDocumentManager::linkViewAndModel(TextReaderView* pTableView, TextDocum
 
 	applySettings();
 
-	// 监听 View 的键盘事件
+	//  View
 	m_View->installEventFilter(this);
 
 	connect(m_Model, &TextDocumentModel::pageChanged, this, &TextDocumentManager::updateText);
@@ -128,14 +126,7 @@ void TextDocumentManager::updateText(int page)
 bool TextDocumentManager::eventFilter(QObject* obj, QEvent* event) {
 	if (obj == m_View && event->type() == QEvent::KeyPress) {
 		QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-		if (keyEvent->key() == Qt::Key_Plus) {
-			m_Settings->setOpacity(qMin(m_Settings->getOpacity() + 0.05, 1.0));  // 增加透明度qMin(windowOpacity() + opacityStep, 1.0)
-			return true;
-		}
-		else if (keyEvent->key() == Qt::Key_Minus) {
-			m_Settings->setOpacity(qMax(m_Settings->getOpacity() - 0.05, 0.05)); // 降低透明度
-			return true;
-		}
+		// Empty
 	}
 	return QObject::eventFilter(obj, event);
 }

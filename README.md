@@ -1,36 +1,57 @@
-# HuYanReader
-一个简单且免费的摸鱼阅读器  
-目前只能在win上使用，下载HuYanReader.rar解压即用  
-[点我下载 Release 版本](https://github.com/dssaiy/HuYanReader/releases/tag/v0.0.1)
+# 🐟 HuYanReader - 终极摸鱼阅读器  
+**免费！简洁！高效！**  
+目前仅支持 Windows 系统，[点此下载最新 Release 版本](https://github.com/dssaiy/HuYanReader/releases/tag/v0.0.1)  
 
-## 项目简介
+## 🎯 项目简介  
+还在为付费阅读器烦恼？(╯°□°）╯︵ ┻━┻  
+HuYanReader 专为**免费阅读网络小说**打造，满足你最纯粹的摸鱼需求！  
+> 市面阅读器功能冗余？我们只保留核心功能，让你专注阅读体验  
 
-市面上类似成熟的阅读器很多，但个人需求很简单(*/ω＼*)只想闲暇时间读读网上的盗版 TXT 小说。  
-而且实在不想付费摸鱼了(╯°□°）╯︵ ┻━┻。因此，我决定自己动手做一个，满足自己的需求。
+## ✨ 功能特点  
+### 🛠️ 核心能力  
+- **📚 本地 TXT 阅读**：流畅加载各类小说文本  
+- **🌐 内置浏览器**：直接在应用内浏览网页内容（新！）  
+- **🚀 系统托盘模式**：启动后自动最小化到托盘，隐秘又高效（新！）  
 
-## 功能特点
+### 🎨 体验优化  
+- **💅 简洁界面**：零广告零干扰，专注阅读本身  
+- **🎚️ 实时透明度调节**：阅读时用`+`/`-`键调整窗口透明度  
 
-- **快捷键支持：**
-  - `Ctrl + Alt + M`：召唤/隐藏文本
-  - `Ctrl + Alt + Q`：我免费啦（销毁）
+## 📖 使用说明  
+1. **启动程序**：双击`HuYanReader.exe`运行  
+2. **托盘操作**：  
+   - 右键点击系统托盘图标 🐟  
+   - 选择功能：  
+     - `打开阅读器`：新建本地TXT阅读窗口  
+     - `打开浏览器`：新建内置网页浏览器  
+     - `退出程序`：关闭所有窗口  
 
-- **简洁界面：** 只保留最基本的功能，界面简洁明了。  
+3. **窗口控制**：  
+   - 拖拽标题栏移动窗口  
+   - 点击右上角`×`最小化到托盘  
 
-- **免费开源：** 完全免费，欢迎大家使用和提建议。
+## ⌨️ 快捷键大全  
+### 🌍 全局快捷键（任意场景生效）  
+| 快捷键 | 功能 | 趣味说明 |  
+|--------|------|----------|  
+| `Ctrl + Alt + M` | 显示/隐藏所有窗口 | 老板键，一键隐身 |  
+| `Ctrl + Alt + Q` | 退出程序 | "我免费啦！" |  
 
-- ## 说明
+### 🪟 窗口内快捷键（阅读窗口激活时）  
+| 快捷键 | 功能 |  
+|--------|------|  
+| `Ctrl + Alt + 小键盘+` | 增加透明度 |  
+| `Ctrl + Alt + 小键盘-` | 降低透明度 |  
 
-- 目前版本较简陋，但足够满足基本需求。
+## 🔗 项目地址  
+GitHub 主页：[https://github.com/dssaiy/HuYanReader](https://github.com/dssaiy/HuYanReader)  
+欢迎提交 Issue 和 PR ✨  
 
-- 后续会根据反馈和自己的学习进度逐步改进，欢迎大家提出建议和意见。
+## 🖼️ 使用效果  
+![阅读器界面](https://github.com/user-attachments/assets/4c71457f-6a33-4506-9846-da875f5a370d)  
+![透明度调节](https://github.com/user-attachments/assets/cfb7244a-9f91-4e29-a455-e3def28719ac)  
+![网页浏览模式](https://github.com/user-attachments/assets/faecb84b-72e5-481e-898e-0d77f2fcf4d3)  
+![系统托盘菜单](https://github.com/user-attachments/assets/6c396378-5960-4f35-b81b-92bf2dfefab1)  
 
-## 项目地址
-
-GitHub 地址：[https://github.com/dssaiy/HuYanRead](https://github.com/dssaiy/HuYanRead)
-
-## 使用效果
-
-![image](https://github.com/user-attachments/assets/4c71457f-6a33-4506-9846-da875f5a370d)  
-![image](https://github.com/user-attachments/assets/cfb7244a-9f91-4e29-a455-e3def28719ac)  
-![image](https://github.com/user-attachments/assets/faecb84b-72e5-481e-898e-0d77f2fcf4d3)  
-![image](https://github.com/user-attachments/assets/6c396378-5960-4f35-b81b-92bf2dfefab1)  
+> ⚠️ 当前版本 v0.0.1 已解决图标和编译问题，运行更稳定  
+> 🌱 持续更新中，期待你的建议！

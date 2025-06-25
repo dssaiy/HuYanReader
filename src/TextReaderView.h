@@ -63,7 +63,7 @@ public slots:
 	void setShowProgress(bool show);
 
 	
-	void setTotalPages(int totalPages);  
+	void setTotalPages(int totalPages);
 
 signals:
 	
@@ -117,8 +117,6 @@ private:
 	
 	QStringList formatText(const QString& text) const;
 
-	void setupGlobalShortcut();
-
 	void toggleVisibility();
 	
 	QPoint getRandomPointInRect(const QPoint& topLeft, const QPoint& bottomRight);
@@ -162,7 +160,6 @@ private:
 	int m_currentPage;
 	int m_totalPages;				  
 
-	QHotkey* m_hotkeyView; 
 };
 
 #endif // TEXTREADERVIEW_H

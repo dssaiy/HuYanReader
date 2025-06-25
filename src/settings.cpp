@@ -45,8 +45,9 @@ void Settings::setDefaults()
 	m_menuEncoding = "UTF-8";
 	m_linesPerPage = 20;
 	m_opacity = 0.85;
-	m_fontColor = "#000000";  
-	m_backgroundColor = "#FFFFFF";  
+	m_fontColor = "#000000";
+	m_backgroundColor = "#FFFFFF";
+	m_startInTray = true;
 }
 
 void Settings::loadSettings()
@@ -73,6 +74,7 @@ void Settings::loadSettings()
 	
 	m_fontColor = m_settings->value("fontColor", "#000000").toString();
 	m_backgroundColor = m_settings->value("backgroundColor", "#FFFFFF").toString();
+	m_startInTray = m_settings->value("startInTray", false).toBool();
 
 	m_settings->endGroup();
 }
@@ -93,6 +95,7 @@ void Settings::saveSettings()
 	
 	m_settings->setValue("fontColor", m_fontColor);
 	m_settings->setValue("backgroundColor", m_backgroundColor);
+	m_settings->setValue("startInTray", m_startInTray);
 
 	
 	m_settings->sync();
@@ -208,4 +211,14 @@ QString Settings::getFontColor() const {
 
 QString Settings::getBackgroundColor() const {
 	return m_backgroundColor;
+}
+
+bool Settings::getStartInTray() const {
+	return m_startInTray;
+}
+
+void Settings::setStartInTray(bool enabled) {
+	if (m_startInTray != enabled) {
+		m_startInTray = enabled;
+	}
 }

@@ -12,7 +12,6 @@ bool isChineseCharacter(QChar ch) {
 
 TextReaderView::TextReaderView(QWidget* parent)
 	: QWidget(parent)
-	, m_hotkeyView(nullptr)
 	, m_resizeTimer(new QTimer(this))
 	, m_contextMenu(new QMenu(this))
 	, m_showPageNumber(0)
@@ -43,16 +42,10 @@ TextReaderView::TextReaderView(QWidget* parent)
 	setCursor(Qt::IBeamCursor);
 
 	createContextMenu();
-	setupGlobalShortcut();
 }
 
 TextReaderView::~TextReaderView()
 {
-	
-	if (m_hotkeyView) {
-		delete m_hotkeyView;
-		m_hotkeyView = nullptr;
-	}
 }
 
 void TextReaderView::setFontSize(float size)
@@ -294,28 +287,48 @@ void TextReaderView::keyPressEvent(QKeyEvent* event)
 	const float opacityStep = 0.1;
 
 	if (this->isVisible()) {
+		if ((event->modifiers() & (Qt::ControlModifier | Qt::AltModifier)) ==
+			(Qt::ControlModifier | Qt::AltModifier)) {
+			if (event->key() == Qt::Key_Plus) {
+				double currentOpacity = windowOpacity();
+				currentOpacity += opacityStep;
+				if (currentOpacity > 1.0) currentOpacity = 1.0;
+				setWindowOpacity(currentOpacity);
+				event->accept();
+			}
+			else if (event->key() == Qt::Key_Minus) {
+				double currentOpacity = windowOpacity();
+				currentOpacity -= opacityStep;
+				if (currentOpacity < 0.1) currentOpacity = 0.1;
+				setWindowOpacity(currentOpacity);
+				event->accept();
+			}
+			else {
+				QWidget::keyPressEvent(event);
+			}
+		}
+		else {
+			switch (event->key()) {
+			case Qt::Key_PageDown:
+			case Qt::Key_Space:
+			case Qt::Key_Right:
+			case Qt::Key_Down:
+			case Qt::Key_3:
+				emit nextPageRequested();
+				event->accept();
+				break;
+			case Qt::Key_PageUp:
+			case Qt::Key_Backspace:
+			case Qt::Key_Left:
+			case Qt::Key_Up:
+			case Qt::Key_1:
+				emit previousPageRequested();
+				event->accept();
+				break;
 
-		switch (event->key()) {
-			
-		case Qt::Key_PageDown:
-		case Qt::Key_Space:
-		case Qt::Key_Right:
-		case Qt::Key_Down:
-		case Qt::Key_3:
-			emit nextPageRequested();
-			event->accept();
-			break;
-		case Qt::Key_PageUp:
-		case Qt::Key_Backspace:
-		case Qt::Key_Left:
-		case Qt::Key_Up:
-		case Qt::Key_1:
-			emit previousPageRequested();
-			event->accept();
-			break;
-
-		default:
-			QWidget::keyPressEvent(event);
+			default:
+				QWidget::keyPressEvent(event);
+			}
 		}
 	}
 }
@@ -372,16 +385,15 @@ void TextReaderView::drawPageInfo(QPainter& painter)
 
 	
 	if (m_showPageNumber) {
-		pageInfo = QString(DSL(" %1/%2 ҳ")).arg(m_currentPage + 1).arg(totalPages);
+		pageInfo = QString(DSL("No. %1/%2 page")).arg(m_currentPage + 1).arg(totalPages);
 	}
 
-	
 	if (m_showProgress) {
 		int progress = totalPages > 0 ? ((m_currentPage + 1) * 100) / totalPages : 0;
 		if (!pageInfo.isEmpty()) {
 			pageInfo += " - ";
 		}
-		pageInfo += QString(DSL(": %1%")).arg(progress);
+		pageInfo += QString(DSL("进度: %1%")).arg(progress);
 	}
 
 	
@@ -394,12 +406,12 @@ void TextReaderView::createContextMenu()
 {
 
 
-	QAction* actionShowPageNumber = m_contextMenu->addAction(DSL("ʾҳ"));
+	QAction* actionShowPageNumber = m_contextMenu->addAction(DSL("显示页码"));
 	actionShowPageNumber->setCheckable(true);
 	actionShowPageNumber->setChecked(m_showPageNumber);
 	connect(actionShowPageNumber, &QAction::toggled, this, &TextReaderView::setShowPageNumber);
 
-	QAction* actionShowProgress = m_contextMenu->addAction(DSL("ʾ"));
+	QAction* actionShowProgress = m_contextMenu->addAction(DSL("显示进度"));
 	actionShowProgress->setCheckable(true);
 	actionShowProgress->setChecked(m_showProgress);
 	connect(actionShowProgress, &QAction::toggled, this, &TextReaderView::setShowProgress);
@@ -481,17 +493,6 @@ QStringList TextReaderView::formatText(const QString& text) const
 		}
 	}
 	return lines;
-}
-
-
-void TextReaderView::setupGlobalShortcut()
-{
-	m_hotkeyView = new QHotkey(QKeySequence("Ctrl+Alt+M"), true, this);
-	if (!m_hotkeyView->isRegistered()) {
-		QMessageBox::warning(nullptr, "Warning", "hot key registration failed!");
-	}
-
-	QObject::connect(m_hotkeyView, &QHotkey::activated, this, &TextReaderView::toggleVisibility);
 }
 
 void TextReaderView::toggleVisibility()

@@ -27,18 +27,20 @@ public:
 	void setOpacity(double opa);
 	void setFontColor(const QString& color);
 	void setBackgroundColor(const QString& color);
-	
+	void setStartInTray(bool enabled);
 
-	float getFontSize() const; 
-	int getTextSpacing() const; 
-	int getLineSpacing() const; 
-	QString getNovelPath() const; 
-	QString getEncoding() const; 
-	QString getMenuEncoding() const; 
-	int getLinesPerPage() const; 
+
+	float getFontSize() const;
+	int getTextSpacing() const;
+	int getLineSpacing() const;
+	QString getNovelPath() const;
+	QString getEncoding() const;
+	QString getMenuEncoding() const;
+	int getLinesPerPage() const;
 	double getOpacity() const;
 	QString getFontColor() const;
 	QString getBackgroundColor() const;
+	bool getStartInTray() const;
 
 	QSettings* getpSettings() { return m_settings; }
 
@@ -70,4 +72,5 @@ private:
 
 	QString m_fontColor;
 	QString m_backgroundColor;
+	bool m_startInTray;
 };
