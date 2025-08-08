@@ -3,11 +3,58 @@
 #include <QFontMetrics>
 #include <QApplication>
 #include <QDebug>
-#include <QCursor> 
+#include <QCursor>
+#include <QFontDatabase>
 
 
 bool isChineseCharacter(QChar ch) {
 	return (ch.unicode() >= 0x4E00 && ch.unicode() <= 0x9FFF);
+}
+
+// 检测最适合的中文字体
+QString TextReaderView::detectBestChineseFont() const {
+	QFontDatabase fontDb;
+	QStringList availableFamilies = fontDb.families();
+
+	// 按优先级定义中文字体列表
+	QStringList chineseFonts = {
+		"SimHei",              // 黑体
+		"SimSun",              // 宋体 (Windows经典)
+		"Microsoft YaHei",     // 微软雅黑 (Windows推荐)
+		"Microsoft YaHei UI",  // 微软雅黑UI
+		"KaiTi",               // 楷体
+		"FangSong",            // 仿宋
+		"Noto Sans CJK SC",    // Google Noto (跨平台)
+		"Source Han Sans SC",  // 思源黑体
+		"PingFang SC",         // 苹方 (macOS)
+		"Hiragino Sans GB",    // 冬青黑体 (macOS)
+		"Arial Unicode MS",    // 通用Unicode字体
+		"WenQuanYi Micro Hei", // 文泉驿微米黑 (Linux)
+		"Droid Sans Fallback"  // Android回退字体
+	};
+
+	// 检查每个字体是否可用
+	for (const QString& fontName : chineseFonts) {
+		if (availableFamilies.contains(fontName)) {
+			// 进一步验证字体是否真正支持中文
+			QFont testFont(fontName);
+			QFontMetrics fm(testFont);
+
+			int chineseCharWidth = fm.horizontalAdvance(QString::fromUtf8("\u548c"));
+			int latinCharWidth = fm.horizontalAdvance("A");
+
+			// 中文字符宽度应该大于拉丁字符，且不为0
+			if (chineseCharWidth > 0 && chineseCharWidth >= latinCharWidth) {
+				qDebug() << "Detected Chinese font:" << fontName;
+				return fontName;
+			}
+		}
+	}
+
+	// 如果没有找到合适的字体，返回系统默认字体
+	qDebug() << "No Chinese font found, using system default";
+	QFont defaultFont;
+	return defaultFont.family();
 }
 
 TextReaderView::TextReaderView(QWidget* parent)
@@ -28,8 +75,10 @@ TextReaderView::TextReaderView(QWidget* parent)
 
 	resize(600, 100);
 
-	
-	m_font = QFont("", 12);
+
+	// 自动检测并设置最适合的中文字体
+	QString bestChineseFont = detectBestChineseFont();
+	m_font = QFont(bestChineseFont, 12);
 	m_textColor = Qt::black;
 	m_backgroundColor = QColor(0, 0, 0, 20);
 	m_margins = QMargins(20, 20, 20, 20);
@@ -69,15 +118,27 @@ void TextReaderView::setLineSpacing(int spacing)
 
 void TextReaderView::setFontAndBackgroundColor(const QString& fontColor, const QString& backColor)
 {
-	
+
 	QString cleanBackColor1 = fontColor.simplified();
-	cleanBackColor1.remove(';');  
+	cleanBackColor1.remove(';');
 	QString cleanBackColor2 = backColor.simplified();
-	cleanBackColor2.remove(';');  
+	cleanBackColor2.remove(';');
 
 	m_textColor = QColor(cleanBackColor1);
-	m_backgroundColor = QColor(cleanBackColor2);  
-	m_backgroundColor.setAlpha(20);  
+	m_backgroundColor = QColor(cleanBackColor2);
+	m_backgroundColor.setAlpha(20);
+}
+
+void TextReaderView::setFontFamily(const QString& fontFamily)
+{
+	if (fontFamily.isEmpty()) {
+		// 空字符串表示自动检测
+		QString bestFont = detectBestChineseFont();
+		m_font.setFamily(bestFont);
+	} else {
+		m_font.setFamily(fontFamily);
+	}
+	update(); // 重新绘制
 }
 
 void TextReaderView::showPage(const QString& text, int currentPage)

@@ -2,6 +2,7 @@
 
 #include <QDialog>
 #include <QColorDialog>
+#include <QFontDatabase>
 #include "Settings.h"
 
 namespace Ui {
@@ -18,11 +19,12 @@ public:
 private slots:
 	void applySettings();
 	void selectNovelPath();
-	void onFontColorButtonClicked();  // °´Å¥µã»÷²Ûº¯Êý
-	void onBackgroundColorButtonClicked();  // °´Å¥µã»÷²Ûº¯Êý
+	void onFontColorButtonClicked();  // ï¿½ï¿½Å¥ï¿½ï¿½ï¿½ï¿½Ûºï¿½ï¿½ï¿½
+	void onBackgroundColorButtonClicked();  // ï¿½ï¿½Å¥ï¿½ï¿½ï¿½ï¿½Ûºï¿½ï¿½ï¿½
 
 private:
 	void loadSettings();
+	void populateFontComboBox();  // å¡«å……å­—ä½“ä¸‹æ‹‰æ¡†
 
 	Ui::SettingsDialog* ui;
 	Settings* m_settings;

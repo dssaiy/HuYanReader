@@ -55,34 +55,53 @@ void TextDocumentModel::setLinesPerPage(int lines)
 void TextDocumentModel::initIndexMap()
 {
 	m_menuIndexMap.clear();
+
+	int totalPageNum = getTotalPages();
+	if (totalPageNum <= 0) {
+		qDebug() << "总页数为0，无法初始化章节索引";
+		return;
+	}
+
 	// 创建进度对话框
-	QProgressDialog progressDialog(u8"正在初始化章节索引...", u8"取消", 0, getTotalPages(), nullptr);
+	QProgressDialog progressDialog(u8"正在初始化章节索引...", u8"取消", 0, totalPageNum - 1, nullptr);
 	progressDialog.setWindowModality(Qt::WindowModal);
 	progressDialog.setMinimumDuration(500); // 避免闪烁
 	progressDialog.setValue(0);
 
-	// 动态创建 QRegularExpression
-	QRegularExpression regex(QString::fromUtf8(u8"(第(\\d+|[一二三四五六七八九十百千万]+)章\\s*(.{1,10}))"));
+	// 动态创建 QRegularExpression，添加"零"和其他可能的数字字符
+	QRegularExpression regex(QString::fromUtf8(u8"(第(\\d+|[一二三四五六七八九十零百千万壹贰叁肆伍陆柒捌玖拾佰仟萬]+)章\\s*(.{1,20}))"));
 
-	int totalPageNum = getTotalPages();
-	for (int page = 0; page <= totalPageNum; page++) {
+	int foundChapters = 0;
+	// 修复循环边界：页码从0到totalPageNum-1
+	for (int page = 0; page < totalPageNum; page++) {
 		// 如果用户点击了“取消”，提前退出
 		if (progressDialog.wasCanceled()) {
+			qDebug() << "用户取消了章节索引初始化，已找到" << foundChapters << "个章节";
 			break;
 		}
 
 		QString pageContent = getPageContent(page);
+		// 检查页面内容是否为空
+		if (pageContent.isEmpty()) {
+			qDebug() << "警告：第" << page << "页内容为空，跳过章节检测";
+			progressDialog.setValue(page);
+			continue;
+		}
+
 		QRegularExpressionMatch match = regex.match(pageContent);
 		if (match.hasMatch()) {
 			QString chapterTitle = match.captured(0);
 			m_menuIndexMap[page] = chapterTitle;
+			foundChapters++;
+			qDebug() << "找到章节：页码" << page << "标题:" << chapterTitle;
 		}
 
 		// 更新进度
 		progressDialog.setValue(page);
 	}
 
-	progressDialog.setValue(totalPageNum); // 确保进度条到达最大值
+	progressDialog.setValue(totalPageNum - 1); // 确保进度条到达最大值
+	qDebug() << "章节索引初始化完成，总共找到" << foundChapters << "个章节，总页数:" << totalPageNum;
 }
 
 
@@ -253,8 +272,10 @@ void TextDocumentModel::updatePageCache(int pageIndex)
 			}
 		}
 
-		// 如果到达文件末尾还未找到目标页
+		// 如果到达文件末尾还未找到目标页，说明页码超出范围
 		if (charCount < targetCharPos && m_file->atEnd()) {
+			// 添加调试信息
+			qDebug() << "警告：请求的页码" << pageIndex << "超出文件范围，字符计数:" << charCount << "目标位置:" << targetCharPos;
 			m_text.clear();
 			return;
 		}
@@ -315,10 +336,25 @@ void TextDocumentModel::updatePageCache(int pageIndex)
 
 QString TextDocumentModel::getPageContent(int pageIndex)
 {
+	// 边界检查
+	if (pageIndex < 0) {
+		qDebug() << "警告：请求的页码" << pageIndex << "小于0";
+		return QString();
+	}
+
+	if (pageIndex >= getTotalPages()) {
+		qDebug() << "警告：请求的页码" << pageIndex << "超出总页数" << getTotalPages();
+		return QString();
+	}
+
 	if (m_useCache) {
 		// 只有当请求的页码与当前缓存页不同时才更新缓存
 		if (pageIndex != m_currentPage) {
 			updatePageCache(pageIndex);
+		}
+		// 检查更新后的内容是否为空
+		if (m_text.isEmpty()) {
+			qDebug() << "警告：第" << pageIndex << "页缓存内容为空";
 		}
 		return m_text;
 	}
@@ -326,6 +362,7 @@ QString TextDocumentModel::getPageContent(int pageIndex)
 		// 非缓存模式，从内存中截取对应页的内容
 		int startPos = pageIndex * m_numPerPage;
 		if (startPos >= m_text.length()) {
+			qDebug() << "警告：非缓存模式下页码" << pageIndex << "超出文本长度";
 			return QString();
 		}
 
@@ -352,20 +389,36 @@ void TextDocumentModel::setTotalPages()
 		// 记录当前文件指针位置
 		qint64 originalPos = m_file->pos();
 
-		QTextStream in(m_file);
-		in.setCodec(m_encoding.toUtf8()); // 确保按照 UTF-8 解析
-		m_file->seek(0);  // 读取前先跳到文件开头
+		// 使用更可靠的方法统计字符数，避免QTextStream的限制
+		m_file->seek(0);  // 跳到文件开头
+
+		// 获取编码器
+		QTextCodec* codec = QTextCodec::codecForName(m_encoding.toUtf8());
+		if (!codec) {
+			codec = QTextCodec::codecForName("UTF-8");
+		}
 
 		qint64 totalChars = 0; // 统计字符数
-		while (!in.atEnd()) {
-			QString line = in.readLine(); // 按行读取
-			totalChars += line.length();  // 统计字符数
+		const qint64 bufferSize = 8192; // 8KB缓冲区
+
+		while (!m_file->atEnd()) {
+			QByteArray buffer = m_file->read(bufferSize);
+			if (buffer.isEmpty()) {
+				break; // 文件读取完毕
+			}
+
+			// 将字节转换为字符并统计
+			QString decodedText = codec->toUnicode(buffer);
+			totalChars += decodedText.length();
 		}
 
 		m_totalPage = (totalChars + m_numPerPage - 1) / m_numPerPage;
 
 		// **恢复文件指针位置**
 		m_file->seek(originalPos);
+
+		// 添加调试输出，方便确认问题
+		qDebug() << "文件总字符数:" << totalChars << "总页数:" << m_totalPage;
 
 		return;
 	}
@@ -404,6 +457,7 @@ int TextDocumentModel::getCurrentPage() const {
 void TextDocumentModel::setCurrentPage(int page) {
 	// 参数有效性检查
 	if (page < 0 || (m_useCache && m_file && page >= getTotalPages())) {
+		qDebug() << "页码超出范围：请求页码" << page << "总页数" << getTotalPages();
 		return;
 	}
 

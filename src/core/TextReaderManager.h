@@ -3,7 +3,7 @@
 #include <QString>
 
 #include "TextDocumentModel.h"
-#include "TextReaderView.h"
+#include "../ui/TextReaderView.h"
 
 class TextDocumentManager : public QObject
 {
@@ -16,8 +16,8 @@ public:
 	void openFile();
 	void linkViewAndModel(TextReaderView* pTableView, TextDocumentModel* pTableModel);
 
-	// °ó¶¨ Settings
-	void applySettings();  // ÈÃ Manager ´¦ÀíÐÂÉèÖÃ
+	// ï¿½ï¿½ Settings
+	void applySettings();  // ï¿½ï¿½ Manager ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	Settings* getSettings() { return m_Settings; }
 
 

@@ -363,3 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 /build
 /memory-bank
+so-novel-1.8.5
+/build_vs

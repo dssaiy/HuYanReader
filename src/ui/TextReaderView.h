@@ -14,8 +14,8 @@
 #include <QColor>
 #include <QRandomGenerator>
 
-#include "TextDocumentModel.h"
-#include "Settings.h"
+#include "../core/TextDocumentModel.h"
+#include "../config/settings.h"
 #include "QHotkey.h" 
 
 #define DSL(str) QStringLiteral(str)
@@ -48,6 +48,8 @@ public:
 	void setLineSpacing(int spacing);
 
 	void setFontAndBackgroundColor(const QString& fontColor, const QString& backColor);
+
+	void setFontFamily(const QString& fontFamily);
 	
 
 	void showPage(const QString& text,int currentPage);
@@ -114,8 +116,11 @@ private:
 	
 	QRect textRect() const;
 
-	
+
 	QStringList formatText(const QString& text) const;
+
+	// 检测最适合的中文字体
+	QString detectBestChineseFont() const;
 
 	void toggleVisibility();
 	

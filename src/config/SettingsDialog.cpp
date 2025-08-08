@@ -10,14 +10,15 @@ SettingsDialog::SettingsDialog(Settings* settings, QWidget* parent)
 	connect(ui->selectPathButton, &QPushButton::clicked, this, &SettingsDialog::selectNovelPath);
 	connect(ui->applyButton, &QPushButton::clicked, this, &SettingsDialog::applySettings);
 	connect(ui->cancelButton, &QPushButton::clicked, this, [this]() {
-		loadSettings();  // ÏÈµ÷ÓÃ loadSettings
-		reject();        // È»ºó¹Ø±Õ¶Ô»°¿ò
+		loadSettings();  // ï¿½Èµï¿½ï¿½ï¿½ loadSettings
+		reject();        // È»ï¿½ï¿½Ø±Õ¶Ô»ï¿½ï¿½ï¿½
 		});
 
-	// ÔÚ¹¹Ôìº¯ÊýÖÐÁ¬½Ó°´Å¥µã»÷ÊÂ¼þ£º
+	// ï¿½Ú¹ï¿½ï¿½ìº¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó°ï¿½Å¥ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½
 	connect(ui->fontColorButton, &QPushButton::clicked, this, &SettingsDialog::onFontColorButtonClicked);
 	connect(ui->backgroundColorButton, &QPushButton::clicked, this, &SettingsDialog::onBackgroundColorButtonClicked);
 
+	populateFontComboBox();  // å¡«å……å­—ä½“ä¸‹æ‹‰æ¡†
 	loadSettings();
 }
 
@@ -37,11 +38,22 @@ void SettingsDialog::loadSettings() {
 	ui->linesPerPageSpinBox->setValue(m_settings->getLinesPerPage());
 	ui->opacitySpinBox->setValue(m_settings->getOpacity());
 
-	// ¼ÓÔØ×ÖÌåÑÕÉ«
+	// è®¾ç½®å­—ä½“é€‰æ‹©
+	QString savedFontFamily = m_settings->getFontFamily();
+	if (savedFontFamily.isEmpty()) {
+		ui->fontFamilyComboBox->setCurrentIndex(0); // è‡ªåŠ¨æ£€æµ‹
+	} else {
+		int index = ui->fontFamilyComboBox->findText(savedFontFamily);
+		if (index >= 0) {
+			ui->fontFamilyComboBox->setCurrentIndex(index);
+		}
+	}
+
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É«
 	QString savedFontColor = m_settings->getFontColor();
 	ui->fontColorLabel->setStyleSheet(QString("background-color: %1;").arg(savedFontColor));
 
-	// ¼ÓÔØ±³¾°ÑÕÉ«
+	// ï¿½ï¿½ï¿½Ø±ï¿½ï¿½ï¿½ï¿½ï¿½É«
 	QString savedBackgroundColor = m_settings->getBackgroundColor();
 	ui->backgroundColorLabel->setStyleSheet(QString("background-color: %1;").arg(savedBackgroundColor));
 }
@@ -56,14 +68,22 @@ void SettingsDialog::applySettings() {
 	m_settings->setLinesPerPage(ui->linesPerPageSpinBox->value());
 	m_settings->setOpacity(ui->opacitySpinBox->value());
 
-	// ±£´æ×ÖÌåÑÕÉ«
+	// ä¿å­˜å­—ä½“é€‰æ‹©
+	QString selectedFont = ui->fontFamilyComboBox->currentText();
+	if (selectedFont == "Auto Detect") {
+		m_settings->setFontFamily(""); // ç©ºå­—ç¬¦ä¸²è¡¨ç¤ºè‡ªåŠ¨æ£€æµ‹
+	} else {
+		m_settings->setFontFamily(selectedFont);
+	}
+
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É«
 	QString fontColor = ui->fontColorLabel->styleSheet();
-	fontColor = fontColor.mid(fontColor.indexOf('#'));  // »ñÈ¡Ê®Áù½øÖÆÑÕÉ«Öµ
+	fontColor = fontColor.mid(fontColor.indexOf('#'));  // ï¿½ï¿½È¡Ê®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É«Öµ
 	m_settings->setFontColor(fontColor);
 
-	// ±£´æ±³¾°ÑÕÉ«
+	// ï¿½ï¿½ï¿½æ±³ï¿½ï¿½ï¿½ï¿½É«
 	QString backgroundColor = ui->backgroundColorLabel->styleSheet();
-	backgroundColor = backgroundColor.mid(backgroundColor.indexOf('#'));  // »ñÈ¡Ê®Áù½øÖÆÑÕÉ«Öµ
+	backgroundColor = backgroundColor.mid(backgroundColor.indexOf('#'));  // ï¿½ï¿½È¡Ê®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É«Öµ
 	m_settings->setBackgroundColor(backgroundColor);
 
 
@@ -80,28 +100,67 @@ void SettingsDialog::selectNovelPath() {
 	}
 }
 
-// ²Ûº¯ÊýÊµÏÖ
+// ï¿½Ûºï¿½ï¿½ï¿½Êµï¿½ï¿½
 void SettingsDialog::onFontColorButtonClicked()
 {
-	QColor color = QColorDialog::getColor(Qt::black, this, "Ñ¡Ôñ×ÖÌåÑÕÉ«");
+	QColor color = QColorDialog::getColor(Qt::black, this, "Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É«");
 
-	// Èç¹ûÓÃ»§Ñ¡ÔñÁËÑÕÉ«£¬Ôò¸üÐÂÏÔÊ¾µ±Ç°ÑÕÉ«µÄ±êÇ©±³¾°
+	// ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½Ç°ï¿½ï¿½É«ï¿½Ä±ï¿½Ç©ï¿½ï¿½ï¿½ï¿½
 	if (color.isValid()) {
 		ui->fontColorLabel->setStyleSheet(QString("background-color: %1;").arg(color.name()));
 
-		// ¿ÉÒÔÔÚ´Ë´¦±£´æÑ¡ÖÐµÄÑÕÉ«£¬¹©ºóÐøÊ¹ÓÃ
+		// ï¿½ï¿½ï¿½ï¿½ï¿½Ú´Ë´ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½Ðµï¿½ï¿½ï¿½É«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½
 	}
 }
 
-// ²Ûº¯ÊýÊµÏÖ
+// ï¿½Ûºï¿½ï¿½ï¿½Êµï¿½ï¿½
 void SettingsDialog::onBackgroundColorButtonClicked()
 {
-	QColor color = QColorDialog::getColor(Qt::black, this, "Ñ¡Ôñ×ÖÌåÑÕÉ«");
+	QColor color = QColorDialog::getColor(Qt::black, this, "Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É«");
 
-	// Èç¹ûÓÃ»§Ñ¡ÔñÁËÑÕÉ«£¬Ôò¸üÐÂÏÔÊ¾µ±Ç°ÑÕÉ«µÄ±êÇ©±³¾°
+	// ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½Ç°ï¿½ï¿½É«ï¿½Ä±ï¿½Ç©ï¿½ï¿½ï¿½ï¿½
 	if (color.isValid()) {
 		ui->backgroundColorLabel->setStyleSheet(QString("background-color: %1;").arg(color.name()));
 
-		// ¿ÉÒÔÔÚ´Ë´¦±£´æÑ¡ÖÐµÄÑÕÉ«£¬¹©ºóÐøÊ¹ÓÃ
+		// ï¿½ï¿½ï¿½ï¿½ï¿½Ú´Ë´ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½Ðµï¿½ï¿½ï¿½É«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½
+	}
+}
+
+void SettingsDialog::populateFontComboBox() {
+	QFontDatabase fontDb;
+	QStringList availableFamilies = fontDb.families();
+
+	// æ·»åŠ è‡ªåŠ¨æ£€æµ‹é€‰é¡¹
+	ui->fontFamilyComboBox->addItem("Auto Detect");
+
+	// æŒ‰ä¼˜å…ˆçº§å®šä¹‰ä¸­æ–‡å­—ä½“åˆ—è¡¨
+	QStringList chineseFonts = {
+		"SimHei",              // é»‘ä½“
+		"SimSun",              // å®‹ä½“ (Windowsç»å…¸)
+		"Microsoft YaHei",     // å¾®è½¯é›…é»‘ (WindowsæŽ¨è)
+		"Microsoft YaHei UI",  // å¾®è½¯é›…é»‘UI
+		"KaiTi",               // æ¥·ä½“
+		"FangSong",            // ä»¿å®‹
+		"Noto Sans CJK SC",    // Google Noto (è·¨å¹³å°)
+		"Source Han Sans SC",  // æ€æºé»‘ä½“
+		"PingFang SC",         // è‹¹æ–¹ (macOS)
+		"Hiragino Sans GB",    // å†¬é’é»‘ä½“ (macOS)
+		"Arial Unicode MS",    // é€šç”¨Unicodeå­—ä½“
+		"WenQuanYi Micro Hei", // æ–‡æ³‰é©¿å¾®ç±³é»‘ (Linux)
+		"Droid Sans Fallback"  // Androidå›žé€€å­—ä½“
+	};
+
+	// é¦–å…ˆæ·»åŠ å¯ç”¨çš„ä¸­æ–‡å­—ä½“
+	for (const QString& fontName : chineseFonts) {
+		if (availableFamilies.contains(fontName)) {
+			ui->fontFamilyComboBox->addItem(fontName);
+		}
+	}
+
+	// ç„¶åŽæ·»åŠ å…¶ä»–å¯ç”¨å­—ä½“
+	for (const QString& family : availableFamilies) {
+		if (!chineseFonts.contains(family) && ui->fontFamilyComboBox->findText(family) == -1) {
+			ui->fontFamilyComboBox->addItem(family);
+		}
 	}
 }

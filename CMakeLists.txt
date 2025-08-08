@@ -21,46 +21,91 @@ set(CMAKE_AUTOUIC ON)  # **开启 UI 自动处理**
 set(CMAKE_AUTORCC ON)  # **开启资源文件自动处理**
 
 # 查找 Qt5 组件
-find_package(Qt5 COMPONENTS Core Gui Widgets WebEngineWidgets PrintSupport REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui Widgets WebEngineWidgets PrintSupport Network Concurrent REQUIRED)
 
 # UI 相关
-set(UI_FILES src/SettingsDialog.ui)
+set(UI_FILES src/config/SettingsDialog.ui)
 
 # 使用 qt5_wrap_ui 处理 UI 文件（CMake 会自动放到 `CMAKE_CURRENT_BINARY_DIR`）
 qt5_wrap_ui(UI_HEADERS ${UI_FILES})
 
 # 处理 Qt 资源文件
-qt5_add_resources(QRC_FILES resources/mainwindow.qrc)
+qt5_add_resources(QRC_FILES src/core/mainwindow.qrc)
 
 # **重要：确保生成的 UI 头文件能够被找到**
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 set(MOC_HEADERS
-    src/chapterdialog.h
-    src/WebEngineView.h
+    src/core/mainwindow.h
+    src/core/TextDocumentModel.h
+    src/core/TextReaderManager.h
+    src/ui/chapterdialog.h
+    src/ui/WebEngineView.h
+    src/ui/TextReaderView.h
+    src/ui/NovelSearchViewEnhanced.h
+    src/config/SettingsDialog.h
+    src/config/NovelConfig.h
+    src/config/NovelSettingsDialog.h
+    src/novel/NovelSearchManager.h
 )
 
 qt5_wrap_cpp(MOC_SRCS ${MOC_HEADERS})  # 生成 MOC 文件
 
-# 添加可执行文件
-add_executable(ProtectEye WIN32 
-    src/main.cpp
-    src/chapterdialog.cpp
-    src/chapterdialog.h
-    src/WebEngineView.cpp
-    src/WebEngineView.h
-    src/mainwindow.cpp
-    src/mainwindow.h
-    src/settings.cpp
-    src/settings.h
-    src/SettingsDialog.cpp
-    src/SettingsDialog.h
-    src/TextDocumentModel.cpp
-    src/TextDocumentModel.h
-    src/TextReaderManager.cpp
-    src/TextReaderManager.h
-    src/TextReaderView.cpp
-    src/TextReaderView.h
+# 添加可执行文件 - 使用新的模块化结构
+add_executable(ProtectEye WIN32
+    # Core module
+    src/core/main.cpp
+    src/core/mainwindow.cpp
+    src/core/mainwindow.h
+    src/core/TextDocumentModel.cpp
+    src/core/TextDocumentModel.h
+    src/core/TextReaderManager.cpp
+    src/core/TextReaderManager.h
+
+    # UI module
+    src/ui/chapterdialog.cpp
+    src/ui/chapterdialog.h
+    src/ui/WebEngineView.cpp
+    src/ui/WebEngineView.h
+    src/ui/TextReaderView.cpp
+    src/ui/TextReaderView.h
+    src/ui/NovelSearchViewEnhanced.cpp
+    src/ui/NovelSearchViewEnhanced.h
+
+    # Config module
+    src/config/settings.cpp
+    src/config/settings.h
+    src/config/SettingsDialog.cpp
+    src/config/SettingsDialog.h
+    src/config/NovelConfig.cpp
+    src/config/NovelConfig.h
+    src/config/NovelSettingsDialog.cpp
+    src/config/NovelSettingsDialog.h
+
+    # Novel module
+    src/novel/NovelSearchManager.cpp
+    src/novel/NovelSearchManager.h
+    src/novel/NovelModels.cpp
+    src/novel/NovelModels.h
+    src/novel/NovelSearcher.cpp
+    src/novel/NovelSearcher.h
+    src/novel/ChapterDownloader.cpp
+    src/novel/ChapterDownloader.h
+    src/novel/FileGenerator.cpp
+    src/novel/FileGenerator.h
+
+    # Network module
+    src/network/HttpClient.cpp
+    src/network/HttpClient.h
+
+    # Parser module
+    src/parser/RuleManager.cpp
+    src/parser/RuleManager.h
+    src/parser/ContentParser.cpp
+    src/parser/ContentParser.h
+    src/parser/LexborHtmlParser.cpp
+    src/parser/LexborHtmlParser.h
+
     ${MOC_SRCS}  # **确保 MOC 生成的代码被编译**
     ${UI_HEADERS}  # **确保 UI 处理的头文件被编译**
     ${QRC_FILES}   # **资源文件**
@@ -74,7 +119,7 @@ set_target_properties(ProtectEye PROPERTIES
 
 
 # 链接 Qt 模块
-target_link_libraries(ProtectEye PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::WebEngineWidgets Qt5::PrintSupport)
+target_link_libraries(ProtectEye PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::WebEngineWidgets Qt5::PrintSupport Qt5::Network Qt5::Concurrent)
 
 # **QHotkey 处理**
 set(QHOTKEY_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/QHotkey)
@@ -99,3 +144,12 @@ add_custom_target(
     COMMAND ${CMAKE_COMMAND} -E copy ${QHOTKEY_LIB_DIR}/qhotkey.lib ${CMAKE_CURRENT_BINARY_DIR}/bin/
     COMMAND ${CMAKE_COMMAND} -E copy ${QHOTKEY_INCLUDE_DIR}/qhotkey.h ${CMAKE_CURRENT_BINARY_DIR}/bin/
 )
+
+# **Lexbor HTML Parser 处理**
+# 添加 Lexbor 子项目
+add_subdirectory(lib/lexbor)
+
+# 链接 Lexbor 库
+target_link_libraries(ProtectEye PRIVATE lexbor_static)
+
+

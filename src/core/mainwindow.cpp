@@ -22,17 +22,71 @@ MainWindow::MainWindow(QWidget* parent)
 	contextMenu(new QMenu(this)),
 	exitAction(new QAction("Exit", this)),
 	m_openWebEngineAction(new QAction("Open Web Browser", this)),
+	m_openNovelSearchAction(new QAction("Open Novel Search", this)),
 	m_webView(new WebEngineView()),
+	m_novelSearchViewEnhanced(new NovelSearchViewEnhanced()),
+	m_novelSearchManager(new NovelSearchManager(settings, this)),
+	m_novelConfig(new NovelConfig(this)),
 	m_windowsVisible(true),
 	m_readerViewActive(false),
-	m_webViewActive(false)
+	m_webViewActive(false),
+	m_novelSearchActive(false)
 {
 	setAttribute(Qt::WA_TranslucentBackground);
 
 	initTrayIcon();
 	initHotkey();
 
+	// Register meta types for Qt signal-slot system (same as test_dialog)
+	qRegisterMetaType<QList<SearchResult>>("QList<SearchResult>");
+	qRegisterMetaType<SearchResult>("SearchResult");
+
 	tdm->linkViewAndModel(view, model);
+
+	// Setup enhanced novel search view
+	m_novelSearchViewEnhanced->setNovelConfig(m_novelConfig);
+
+	// Link NovelConfig to search manager
+	m_novelSearchManager->setNovelConfig(m_novelConfig);
+
+	// Connect enhanced view signals to manager
+	connect(m_novelSearchViewEnhanced, &NovelSearchViewEnhanced::searchRequested,
+	        m_novelSearchManager, &NovelSearchManager::startSearch);
+	connect(m_novelSearchViewEnhanced, &NovelSearchViewEnhanced::downloadRequested,
+	        m_novelSearchManager, &NovelSearchManager::startDownload);
+
+	// Connect manager signals to enhanced view
+	bool connected1 = connect(m_novelSearchManager, &NovelSearchManager::searchStarted,
+	        m_novelSearchViewEnhanced, &NovelSearchViewEnhanced::onSearchStarted);
+	bool connected2 = connect(m_novelSearchManager, &NovelSearchManager::searchProgress,
+	        m_novelSearchViewEnhanced, &NovelSearchViewEnhanced::onSearchProgress);
+	bool connected3 = connect(m_novelSearchManager, &NovelSearchManager::searchCompleted,
+	        m_novelSearchViewEnhanced, &NovelSearchViewEnhanced::onSearchCompleted);
+	bool connected4 = connect(m_novelSearchManager, &NovelSearchManager::searchResultsUpdated,
+	        m_novelSearchViewEnhanced, &NovelSearchViewEnhanced::onSearchResultsUpdated);
+	bool connected5 = connect(m_novelSearchManager, &NovelSearchManager::searchFailed,
+	        m_novelSearchViewEnhanced, &NovelSearchViewEnhanced::onSearchFailed);
+
+	// Connect download-related signals
+	bool connected6 = connect(m_novelSearchManager, &NovelSearchManager::downloadStarted,
+	        m_novelSearchViewEnhanced, &NovelSearchViewEnhanced::onDownloadStarted);
+	bool connected7 = connect(m_novelSearchManager, &NovelSearchManager::downloadProgress,
+	        m_novelSearchViewEnhanced, &NovelSearchViewEnhanced::onDownloadProgress);
+	bool connected8 = connect(m_novelSearchManager, &NovelSearchManager::downloadCompleted,
+	        m_novelSearchViewEnhanced, &NovelSearchViewEnhanced::onDownloadCompleted);
+	bool connected9 = connect(m_novelSearchManager, &NovelSearchManager::downloadFailed,
+	        m_novelSearchViewEnhanced, &NovelSearchViewEnhanced::onDownloadFailed);
+
+	qDebug() << "Signal connections established:";
+	qDebug() << "  searchStarted:" << connected1;
+	qDebug() << "  searchProgress:" << connected2;
+	qDebug() << "  searchCompleted:" << connected3;
+	qDebug() << "  searchResultsUpdated:" << connected4;
+	qDebug() << "  searchFailed:" << connected5;
+	qDebug() << "  downloadStarted:" << connected6;
+	qDebug() << "  downloadProgress:" << connected7;
+	qDebug() << "  downloadCompleted:" << connected8;
+	qDebug() << "  downloadFailed:" << connected9;
 
 	connect(settings, &Settings::settingsChanged, tdm, &TextDocumentManager::applySettings);
 }
@@ -110,7 +164,7 @@ void MainWindow::changeEvent(QEvent* event) {
 
 void MainWindow::initTrayIcon() {
 	trayIcon->setToolTip("Huyan Reader");
-	trayIcon->setIcon(QIcon(":/images/icon.ico")); // Use resource path
+	trayIcon->setIcon(QIcon(":/MainWindow/icon.ico")); // Use resource path
 	createTrayMenu();
 	trayIcon->show();
 }
@@ -141,6 +195,9 @@ void MainWindow::createTrayMenu() {
 	connect(m_openWebEngineAction, &QAction::triggered, this, &MainWindow::openWebBrowser);
 	contextMenu->addAction(m_openWebEngineAction);
 
+	connect(m_openNovelSearchAction, &QAction::triggered, this, &MainWindow::openNovelSearch);
+	contextMenu->addAction(m_openNovelSearchAction);
+
 	contextMenu->addSeparator();
 
 	connect(exitAction, &QAction::triggered, qApp, &QApplication::quit);
@@ -170,6 +227,17 @@ void MainWindow::openWebBrowser()
 	m_webView->show();
 }
 
+void MainWindow::openNovelSearch()
+{
+	m_novelSearchActive = true;
+	// Show the enhanced novel search view
+	if (m_novelSearchViewEnhanced) {
+		m_novelSearchViewEnhanced->show();
+		m_novelSearchViewEnhanced->raise();
+		m_novelSearchViewEnhanced->activateWindow();
+	}
+}
+
 void MainWindow::toggleAllWindows()
 {
 	m_windowsVisible = !m_windowsVisible;
@@ -180,5 +248,9 @@ void MainWindow::toggleAllWindows()
 	
 	if (m_webViewActive) {
 		m_webView->setVisible(m_windowsVisible);
+	}
+
+	if (m_novelSearchActive) {
+		m_novelSearchViewEnhanced->setVisible(m_windowsVisible);
 	}
 }

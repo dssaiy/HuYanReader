@@ -1,0 +1,77 @@
+[
+  {
+    "id": 1,
+    "url": "http://www.xbiqugu.la/",
+    "name": "香书小说",
+    "comment": "测试书源",
+    "language": "zh_CN",
+    "search": {
+      "url": "http://www.xbiqugu.la/modules/article/waps.php",
+      "method": "post",
+      "data": "{searchkey: %s}",
+      "result": "#checkform > table > tbody > tr",
+      "bookName": "td.even > a",
+      "author": "td:nth-of-type(3)",
+      "latestChapter": "td.odd > a",
+      "lastUpdateTime": "td:nth-of-type(4)"
+    },
+    "book": {
+      "bookName": "meta[property=\"og:novel:book_name\"]",
+      "author": "meta[property=\"og:novel:author\"]",
+      "intro": "meta[property=\"og:description\"]",
+      "category": "meta[property=\"og:novel:category\"]",
+      "coverUrl": "meta[property=\"og:image\"]"
+    },
+    "toc": {
+      "item": "#list > dl > dd > a"
+    },
+    "chapter": {
+      "title": ".bookname > h1",
+      "content": "#content",
+      "paragraphTagClosed": false,
+      "paragraphTag": "<br>+",
+      "filterTxt": "一秒记住【文学巴士&nbsp;】，精彩无弹窗免费阅读！|(www.xbiquge.la 新笔趣阁)，高速全文字在线阅读！",
+      "filterTag": "div p script"
+    }
+  },
+  {
+    "id": 2,
+    "url": "https://www.shuhaige.net/",
+    "name": "书海阁小说网",
+    "comment": "测试书源2",
+    "language": "zh_CN",
+    "search": {
+      "url": "https://www.shuhaige.net/search.html",
+      "method": "post",
+      "data": "{searchkey: %s, searchtype: all}",
+      "cookies": "waf_sc=''; HMACCOUNT=''",
+      "result": "#sitembox > dl",
+      "bookName": "dd > h3 > a",
+      "author": "dd:nth-child(3) > span:nth-child(1)",
+      "latestChapter": "dd:nth-child(3) > span:nth-child(3) > a",
+      "lastUpdateTime": "dd:nth-child(3) > span:nth-child(4)"
+    },
+    "book": {
+      "bookName": "meta[property=\"og:novel:book_name\"]",
+      "author": "meta[property=\"og:novel:author\"]",
+      "intro": "#intro > p:nth-child(1)",
+      "category": "meta[property=\"og:novel:category\"]",
+      "coverUrl": "meta[property=\"og:image\"]",
+      "latestChapter": "meta[property=\"og:novel:latest_chapter_name\"]",
+      "lastUpdateTime": "meta[property=\"og:novel:update_time\"]",
+      "status": "meta[property=\"og:novel:status\"]"
+    },
+    "toc": {
+      "item": "dl > dt:nth-of-type(2) ~ dd > a"
+    },
+    "chapter": {
+      "title": ".bookname > h1",
+      "content": "#content",
+      "paragraphTagClosed": true,
+      "filterTxt": "本小章还未完，请点击下一页继续阅读后面精彩内容！|小主，这个章节后面还有哦，请点击下一页继续阅读，后面更精彩！",
+      "filterTag": "div hr script table",
+      "pagination": true,
+      "nextPage": "#pager_next"
+    }
+  }
+]

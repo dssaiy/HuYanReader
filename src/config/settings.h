@@ -17,17 +17,18 @@ public:
 	~Settings();
 	
 
-	void setFontSize(float size); 
-	void setTextSpacing(int spacing); 
-	void setLineSpacing(int spacing); 
-	void setNovelPath(const QString& path); 
-	void setEncoding(const QString& encoding); 
-	void setMenuEncoding(const QString& encoding); 
-	void setLinesPerPage(int lines); 
+	void setFontSize(float size);
+	void setTextSpacing(int spacing);
+	void setLineSpacing(int spacing);
+	void setNovelPath(const QString& path);
+	void setEncoding(const QString& encoding);
+	void setMenuEncoding(const QString& encoding);
+	void setLinesPerPage(int lines);
 	void setOpacity(double opa);
 	void setFontColor(const QString& color);
 	void setBackgroundColor(const QString& color);
 	void setStartInTray(bool enabled);
+	void setFontFamily(const QString& fontFamily);
 
 
 	float getFontSize() const;
@@ -41,6 +42,7 @@ public:
 	QString getFontColor() const;
 	QString getBackgroundColor() const;
 	bool getStartInTray() const;
+	QString getFontFamily() const;
 
 	QSettings* getpSettings() { return m_settings; }
 
@@ -73,4 +75,5 @@ private:
 	QString m_fontColor;
 	QString m_backgroundColor;
 	bool m_startInTray;
+	QString m_fontFamily;
 };

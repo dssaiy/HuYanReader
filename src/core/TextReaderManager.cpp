@@ -80,6 +80,7 @@ void TextDocumentManager::applySettings()
 	m_Model->reloadFile(m_Settings->getNovelPath());  
 
 	m_View->setFontAndBackgroundColor(m_Settings->getFontColor(), m_Settings->getBackgroundColor());
+	m_View->setFontFamily(m_Settings->getFontFamily());
 
 	m_View->setWindowOpacity(m_Settings->getOpacity());
 	m_View->setFontSize(m_Settings->getFontSize());

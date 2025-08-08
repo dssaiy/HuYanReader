@@ -48,6 +48,7 @@ void Settings::setDefaults()
 	m_fontColor = "#000000";
 	m_backgroundColor = "#FFFFFF";
 	m_startInTray = true;
+	m_fontFamily = ""; // 空字符串表示自动检测
 }
 
 void Settings::loadSettings()
@@ -75,6 +76,7 @@ void Settings::loadSettings()
 	m_fontColor = m_settings->value("fontColor", "#000000").toString();
 	m_backgroundColor = m_settings->value("backgroundColor", "#FFFFFF").toString();
 	m_startInTray = m_settings->value("startInTray", false).toBool();
+	m_fontFamily = m_settings->value("fontFamily", "").toString();
 
 	m_settings->endGroup();
 }
@@ -96,6 +98,7 @@ void Settings::saveSettings()
 	m_settings->setValue("fontColor", m_fontColor);
 	m_settings->setValue("backgroundColor", m_backgroundColor);
 	m_settings->setValue("startInTray", m_startInTray);
+	m_settings->setValue("fontFamily", m_fontFamily);
 
 	
 	m_settings->sync();
@@ -172,6 +175,13 @@ void Settings::setBackgroundColor(const QString& color) {
 	}
 }
 
+void Settings::setFontFamily(const QString& fontFamily) {
+	if (m_fontFamily != fontFamily) {
+		m_fontFamily = fontFamily;
+		emit settingsChanged();
+	}
+}
+
 
 float Settings::getFontSize() const {
 	return m_fontSize;
@@ -215,6 +225,10 @@ QString Settings::getBackgroundColor() const {
 
 bool Settings::getStartInTray() const {
 	return m_startInTray;
+}
+
+QString Settings::getFontFamily() const {
+	return m_fontFamily;
 }
 
 void Settings::setStartInTray(bool enabled) {
