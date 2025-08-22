@@ -9,6 +9,14 @@ if (${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     message(FATAL_ERROR "Using build_dir same as source_dir is forbidden")
 endif()
 
+# 隐藏辅助目标，只显示核心目标
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set(CMAKE_FOLDER "CMakePredefinedTargets")
+
+# 禁用不需要的默认目标
+set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY true)
+set(CMAKE_SUPPRESS_REGENERATION true)
+
 # 打印当前目录信息
 message("Current build  dir: " ${CMAKE_CURRENT_BINARY_DIR})
 message("Current source dir: " ${CMAKE_CURRENT_SOURCE_DIR})
@@ -125,11 +133,16 @@ target_link_libraries(ProtectEye PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::We
 set(QHOTKEY_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/QHotkey)
 set(QHOTKEY_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/QHotkey)
 
+# 创建QHotkey接口目标用于组织
+add_library(QHotkey INTERFACE)
+target_include_directories(QHotkey INTERFACE ${QHOTKEY_INCLUDE_DIR})
+target_link_libraries(QHotkey INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/lib/QHotkey/qhotkey.lib)
+
 # 添加 QHotkey 头文件路径
 include_directories(${QHOTKEY_INCLUDE_DIR})
 
 # 链接 QHotkey 库
-target_link_libraries(ProtectEye PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/lib/QHotkey/qhotkey.lib)
+target_link_libraries(ProtectEye PRIVATE QHotkey)
 
 # **Qt 部署**
 get_target_property(qmake_location Qt5::qmake IMPORTED_LOCATION)
@@ -140,14 +153,38 @@ find_program(win_deploy_qt windeployqt HINTS "${qt5_bin_dir}")
 
 add_custom_target(
     "DeployQt"
-    COMMAND "${win_deploy_qt}" ${CMAKE_CURRENT_BINARY_DIR}/bin/ProtectEye.exe
-    COMMAND ${CMAKE_COMMAND} -E copy ${QHOTKEY_LIB_DIR}/qhotkey.lib ${CMAKE_CURRENT_BINARY_DIR}/bin/
-    COMMAND ${CMAKE_COMMAND} -E copy ${QHOTKEY_INCLUDE_DIR}/qhotkey.h ${CMAKE_CURRENT_BINARY_DIR}/bin/
+    COMMAND "${win_deploy_qt}" --debug --webenginewidgets "$<TARGET_FILE:ProtectEye>"
+    DEPENDS ProtectEye
+    COMMENT "Deploying Qt libraries and dependencies"
 )
 
+# 设置目标的文件夹属性，整理VS解决方案结构
+set_target_properties(ProtectEye PROPERTIES FOLDER "Main")
+set_target_properties(DeployQt PROPERTIES FOLDER "Main")
+
+# 隐藏系统生成的目标
+if(TARGET ZERO_CHECK)
+    set_target_properties(ZERO_CHECK PROPERTIES FOLDER "CMakePredefinedTargets")
+endif()
+if(TARGET INSTALL)
+    set_target_properties(INSTALL PROPERTIES FOLDER "CMakePredefinedTargets") 
+endif()
+if(TARGET PACKAGE)
+    set_target_properties(PACKAGE PROPERTIES FOLDER "CMakePredefinedTargets")
+endif()
+if(TARGET ALL_BUILD)
+    set_target_properties(ALL_BUILD PROPERTIES FOLDER "CMakePredefinedTargets")
+endif()
+
 # **Lexbor HTML Parser 处理**
-# 添加 Lexbor 子项目
+# 添加 Lexbor 子项目（隐藏在文件夹中）
 add_subdirectory(lib/lexbor)
+
+# 将 Lexbor 相关目标放入文件夹
+set_target_properties(lexbor_static PROPERTIES FOLDER "ThirdParty/Lexbor")
+
+# 将 QHotkey 目标放入文件夹
+set_target_properties(QHotkey PROPERTIES FOLDER "ThirdParty/QHotkey")
 
 # 链接 Lexbor 库
 target_link_libraries(ProtectEye PRIVATE lexbor_static)
