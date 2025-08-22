@@ -1,6 +1,5 @@
 #include <QApplication>
 #include <QMessageBox>
-#include <QWebEngineView>
 
 #include "mainwindow.h"
 #include "../config/SettingsDialog.h"

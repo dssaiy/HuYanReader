@@ -21,15 +21,12 @@ MainWindow::MainWindow(QWidget* parent)
 	trayIcon(new QSystemTrayIcon(this)),
 	contextMenu(new QMenu(this)),
 	exitAction(new QAction("Exit", this)),
-	m_openWebEngineAction(new QAction("Open Web Browser", this)),
 	m_openNovelSearchAction(new QAction("Open Novel Search", this)),
-	m_webView(new WebEngineView()),
 	m_novelSearchViewEnhanced(new NovelSearchViewEnhanced()),
 	m_novelSearchManager(new NovelSearchManager(settings, this)),
 	m_novelConfig(new NovelConfig(this)),
 	m_windowsVisible(true),
 	m_readerViewActive(false),
-	m_webViewActive(false),
 	m_novelSearchActive(false)
 {
 	setAttribute(Qt::WA_TranslucentBackground);
@@ -96,12 +93,6 @@ MainWindow::~MainWindow() {
 		view->close();
 		delete view;
 		view = nullptr;
-	}
-
-	if (m_webView) {
-		m_webView->close();
-		delete m_webView;
-		m_webView = nullptr;
 	}
 
 	if (tdm) {
@@ -192,9 +183,6 @@ void MainWindow::createTrayMenu() {
 
 	contextMenu->addSeparator();
 
-	connect(m_openWebEngineAction, &QAction::triggered, this, &MainWindow::openWebBrowser);
-	contextMenu->addAction(m_openWebEngineAction);
-
 	connect(m_openNovelSearchAction, &QAction::triggered, this, &MainWindow::openNovelSearch);
 	contextMenu->addAction(m_openNovelSearchAction);
 
@@ -221,12 +209,6 @@ void MainWindow::onChapterSelected(int pageIndex)
 	tdm->tableModel()->setCurrentPage(pageIndex);
 }
 
-void MainWindow::openWebBrowser()
-{
-	m_webViewActive = true;
-	m_webView->show();
-}
-
 void MainWindow::openNovelSearch()
 {
 	m_novelSearchActive = true;
@@ -246,10 +228,6 @@ void MainWindow::toggleAllWindows()
 		view->setVisible(m_windowsVisible);
 	}
 	
-	if (m_webViewActive) {
-		m_webView->setVisible(m_windowsVisible);
-	}
-
 	if (m_novelSearchActive) {
 		m_novelSearchViewEnhanced->setVisible(m_windowsVisible);
 	}

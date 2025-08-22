@@ -20,7 +20,6 @@
 #include "../config/SettingsDialog.h"
 #include "QHotkey.h"
 #include "../ui/chapterdialog.h"
-#include "../ui/WebEngineView.h"
 #include "../ui/NovelSearchViewEnhanced.h"
 #include "../novel/NovelSearchManager.h"
 #include "../config/NovelConfig.h"
@@ -62,24 +61,20 @@ private:
 	QSystemTrayIcon* trayIcon;
 	QMenu* contextMenu;
 	QAction* exitAction;
-	QAction* m_openWebEngineAction;
 	QAction* m_openNovelSearchAction;
 	QHotkey* m_hotkeyQuit;
 	QHotkey* m_hotkeyBoss;
-	WebEngineView* m_webView;
 	NovelSearchViewEnhanced* m_novelSearchViewEnhanced;
 	NovelSearchManager* m_novelSearchManager;
 	NovelConfig* m_novelConfig;
 	bool m_windowsVisible;
 	bool m_readerViewActive;
-	bool m_webViewActive;
 	bool m_novelSearchActive;
 
 private slots:
 	
 	void onChapterSelectClicked();
 	void onChapterSelected(int pageIndex);
-	void openWebBrowser();
 	void openNovelSearch();
 	void toggleAllWindows();
 

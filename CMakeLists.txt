@@ -28,8 +28,8 @@ set(CMAKE_AUTOMOC ON)  # **开启 MOC 自动处理**
 set(CMAKE_AUTOUIC ON)  # **开启 UI 自动处理**
 set(CMAKE_AUTORCC ON)  # **开启资源文件自动处理**
 
-# 查找 Qt5 组件
-find_package(Qt5 COMPONENTS Core Gui Widgets WebEngineWidgets PrintSupport Network Concurrent REQUIRED)
+# 查找 Qt5 组件（移除WebEngineWidgets以减少部署大小）
+find_package(Qt5 COMPONENTS Core Gui Widgets PrintSupport Network Concurrent REQUIRED)
 
 # UI 相关
 set(UI_FILES src/config/SettingsDialog.ui)
@@ -48,7 +48,6 @@ set(MOC_HEADERS
     src/core/TextDocumentModel.h
     src/core/TextReaderManager.h
     src/ui/chapterdialog.h
-    src/ui/WebEngineView.h
     src/ui/TextReaderView.h
     src/ui/NovelSearchViewEnhanced.h
     src/config/SettingsDialog.h
@@ -73,8 +72,6 @@ add_executable(ProtectEye WIN32
     # UI module
     src/ui/chapterdialog.cpp
     src/ui/chapterdialog.h
-    src/ui/WebEngineView.cpp
-    src/ui/WebEngineView.h
     src/ui/TextReaderView.cpp
     src/ui/TextReaderView.h
     src/ui/NovelSearchViewEnhanced.cpp
@@ -126,8 +123,8 @@ set_target_properties(ProtectEye PROPERTIES
 )
 
 
-# 链接 Qt 模块
-target_link_libraries(ProtectEye PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::WebEngineWidgets Qt5::PrintSupport Qt5::Network Qt5::Concurrent)
+# 链接 Qt 模块（移除WebEngineWidgets）
+target_link_libraries(ProtectEye PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::PrintSupport Qt5::Network Qt5::Concurrent)
 
 # **QHotkey 处理**
 set(QHOTKEY_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/QHotkey)
@@ -153,9 +150,9 @@ find_program(win_deploy_qt windeployqt HINTS "${qt5_bin_dir}")
 
 add_custom_target(
     "DeployQt"
-    COMMAND "${win_deploy_qt}" --debug --webenginewidgets "$<TARGET_FILE:ProtectEye>"
+    COMMAND "${win_deploy_qt}" --debug "$<TARGET_FILE:ProtectEye>"
     DEPENDS ProtectEye
-    COMMENT "Deploying Qt libraries and dependencies"
+    COMMENT "Deploying Qt libraries and dependencies (without WebEngine)"
 )
 
 # 设置目标的文件夹属性，整理VS解决方案结构
