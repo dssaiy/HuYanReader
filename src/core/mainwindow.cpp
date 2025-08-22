@@ -4,6 +4,14 @@
 #include <QTextLayout>
 #include <QApplication>
 #include <QTextBlock>
+#include <QTimer>
+#include <QDebug>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPushButton>
+#include <QMenuBar>
+#include <QStatusBar>
 #include <algorithm>
 
 #include "mainwindow.h"
@@ -142,8 +150,9 @@ void MainWindow::initHotkey() {
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
-	// Since there is no main window, this might not be triggered.
-	// We can quit the app from the tray menu.
+	// Close button minimizes to taskbar instead of quitting
+	qDebug() << "Close button clicked - minimizing to taskbar";
+	this->showMinimized();
 	event->ignore();
 }
 
@@ -154,10 +163,135 @@ void MainWindow::changeEvent(QEvent* event) {
 }
 
 void MainWindow::initTrayIcon() {
-	trayIcon->setToolTip("Huyan Reader");
-	trayIcon->setIcon(QIcon(":/MainWindow/icon.ico")); // Use resource path
-	createTrayMenu();
-	trayIcon->show();
+	// Use window mode instead of system tray
+	this->setWindowTitle("HuYan Reader v1.0");
+	this->setWindowIcon(QIcon(":/MainWindow/icon.ico"));
+	
+	// Set window size and position
+	this->resize(600, 450);
+	this->move(100, 100);
+	
+	// Create central widget
+	QWidget* centralWidget = new QWidget(this);
+	this->setCentralWidget(centralWidget);
+	
+	QVBoxLayout* layout = new QVBoxLayout(centralWidget);
+	
+	// Add welcome label
+	QLabel* welcomeLabel = new QLabel("Welcome to HuYan Reader", this);
+	welcomeLabel->setAlignment(Qt::AlignCenter);
+	welcomeLabel->setStyleSheet("font-size: 18px; font-weight: bold; color: #2c3e50; margin: 20px;");
+	layout->addWidget(welcomeLabel);
+	
+	// Add function buttons
+	QHBoxLayout* buttonLayout = new QHBoxLayout();
+	
+	QPushButton* readingButton = new QPushButton("Start Reading", this);
+	readingButton->setMinimumHeight(40);
+	readingButton->setStyleSheet("QPushButton { background-color: #27ae60; color: white; border: none; padding: 10px; border-radius: 5px; font-size: 14px; } QPushButton:hover { background-color: #229954; }");
+	connect(readingButton, &QPushButton::clicked, [this]() {
+		// Open text reader view
+		if (view) {
+			m_readerViewActive = true;
+			view->show();
+			view->raise();
+			view->activateWindow();
+		}
+	});
+	
+	QPushButton* contentsButton = new QPushButton("Show Contents", this);
+	contentsButton->setMinimumHeight(40);
+	contentsButton->setStyleSheet("QPushButton { background-color: #3498db; color: white; border: none; padding: 10px; border-radius: 5px; font-size: 14px; } QPushButton:hover { background-color: #2980b9; }");
+	connect(contentsButton, &QPushButton::clicked, this, &MainWindow::onChapterSelectClicked);
+	
+	QPushButton* settingsButton = new QPushButton("Settings", this);
+	settingsButton->setMinimumHeight(40);
+	settingsButton->setStyleSheet("QPushButton { background-color: #95a5a6; color: white; border: none; padding: 10px; border-radius: 5px; font-size: 14px; } QPushButton:hover { background-color: #7f8c8d; }");
+	connect(settingsButton, &QPushButton::clicked, [this]() {
+		settingsDialog->show();
+	});
+	
+	buttonLayout->addWidget(readingButton);
+	buttonLayout->addWidget(contentsButton);
+	buttonLayout->addWidget(settingsButton);
+	layout->addLayout(buttonLayout);
+	
+	// Add info text
+	QLabel* infoLabel = new QLabel(
+		"<h3>Features:</h3>"
+		"<ul>"
+		"<li><b>Text Reading</b>: Read TXT files with advanced features</li>"
+		"<li><b>Eye Protection</b>: Reduce eye strain with special modes</li>"
+		"<li><b>Global Hotkeys</b>: Control reading with keyboard shortcuts</li>"
+		"<li><b>Novel Download</b>: Search and download novels from web</li>"
+		"</ul>"
+		"<p style='margin-top: 20px;'><b>Tip:</b> Click 'Start Reading' to begin or use hotkeys for quick access</p>", 
+		this);
+	infoLabel->setWordWrap(true);
+	infoLabel->setStyleSheet("color: #34495e; margin: 20px; line-height: 1.5;");
+	layout->addWidget(infoLabel);
+	
+	layout->addStretch(); // Add flexible space
+	
+	// Create menu bar
+	QMenuBar* menuBar = this->menuBar();
+	QMenu* fileMenu = menuBar->addMenu("&File");
+	QMenu* viewMenu = menuBar->addMenu("&View");
+	QMenu* toolsMenu = menuBar->addMenu("&Tools");
+	QMenu* helpMenu = menuBar->addMenu("&Help");
+	
+	// Add menu items
+	QAction* openFileAction = fileMenu->addAction("&Open Text File...");
+	connect(openFileAction, &QAction::triggered, [this]() {
+		if (view) {
+			m_readerViewActive = true;
+			view->show();
+			view->raise();
+			view->activateWindow();
+		}
+	});
+	
+	fileMenu->addSeparator();
+	QAction* exitAction = fileMenu->addAction("E&xit");
+	connect(exitAction, &QAction::triggered, qApp, &QApplication::quit);
+	
+	QAction* startReadingAction = viewMenu->addAction("&Start Reading");
+	connect(startReadingAction, &QAction::triggered, [this]() {
+		if (view) {
+			m_readerViewActive = true;
+			view->show();
+			view->raise();
+			view->activateWindow();
+		}
+	});
+	
+	QAction* novelSearchAction = toolsMenu->addAction("&Novel Search");
+	connect(novelSearchAction, &QAction::triggered, this, &MainWindow::openNovelSearch);
+	
+	QAction* settingsAction = toolsMenu->addAction("&Settings");
+	connect(settingsAction, &QAction::triggered, [this]() {
+		settingsDialog->show();
+	});
+	
+	QAction* aboutAction = helpMenu->addAction("&About");
+	connect(aboutAction, &QAction::triggered, [this]() {
+		QMessageBox::about(this, "About HuYan Reader", 
+			"HuYan Reader v1.0\n\n"
+			"Advanced TXT file reader with eye protection features\n"
+			"Support novel downloading and global hotkey control\n\n"
+			"Main Features:\n"
+			"• TXT file reading with multiple view modes\n"
+			"• Eye protection settings and themes\n"
+			"• Global hotkey control for hands-free operation\n"
+			"• Novel search and download capabilities\n\n"
+			"Lightweight version without WebEngine component");
+	});
+	
+	// Create status bar
+	this->statusBar()->showMessage("HuYan Reader ready - Click 'Start Reading' to open a text file");
+	
+	// Show main window
+	this->show();
 }
 
 //void MainWindow::initUI() {
@@ -222,13 +356,17 @@ void MainWindow::openNovelSearch()
 
 void MainWindow::toggleAllWindows()
 {
+	qDebug() << "toggleAllWindows() called - Boss Key (Ctrl+Alt+M)";
+	qDebug() << "m_windowsVisible:" << m_windowsVisible;
+	qDebug() << "m_readerViewActive:" << m_readerViewActive;
+	
 	m_windowsVisible = !m_windowsVisible;
 
-	if (m_readerViewActive) {
+	// Boss key only controls TextReaderView, not main window
+	if (m_readerViewActive && view) {
+		qDebug() << "Setting TextReaderView visible to:" << m_windowsVisible;
 		view->setVisible(m_windowsVisible);
 	}
 	
-	if (m_novelSearchActive) {
-		m_novelSearchViewEnhanced->setVisible(m_windowsVisible);
-	}
+	// Main window and NovelSearch are NOT controlled by boss key
 }

@@ -17,6 +17,9 @@ set(CMAKE_FOLDER "CMakePredefinedTargets")
 set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY true)
 set(CMAKE_SUPPRESS_REGENERATION true)
 
+# 静态编译配置 - 现在使用完全静态链接
+# set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 # 打印当前目录信息
 message("Current build  dir: " ${CMAKE_CURRENT_BINARY_DIR})
 message("Current source dir: " ${CMAKE_CURRENT_SOURCE_DIR})
@@ -28,7 +31,7 @@ set(CMAKE_AUTOMOC ON)  # **开启 MOC 自动处理**
 set(CMAKE_AUTOUIC ON)  # **开启 UI 自动处理**
 set(CMAKE_AUTORCC ON)  # **开启资源文件自动处理**
 
-# 查找 Qt5 组件（移除WebEngineWidgets以减少部署大小）
+# 查找 Qt5 组件（使用静态运行时）
 find_package(Qt5 COMPONENTS Core Gui Widgets PrintSupport Network Concurrent REQUIRED)
 
 # UI 相关
@@ -120,11 +123,20 @@ set_target_properties(ProtectEye PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin"
+    WIN32_EXECUTABLE TRUE
+    LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup"
 )
 
 
 # 链接 Qt 模块（移除WebEngineWidgets）
 target_link_libraries(ProtectEye PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::PrintSupport Qt5::Network Qt5::Concurrent)
+
+# 静态链接所需的Windows系统库
+target_link_libraries(ProtectEye PRIVATE 
+    kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib 
+    oleaut32.lib uuid.lib comdlg32.lib advapi32.lib secur32.lib ws2_32.lib 
+    winmm.lib version.lib dwmapi.lib imm32.lib
+)
 
 # **QHotkey 处理**
 set(QHOTKEY_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/QHotkey)
@@ -133,7 +145,7 @@ set(QHOTKEY_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/QHotkey)
 # 创建QHotkey接口目标用于组织
 add_library(QHotkey INTERFACE)
 target_include_directories(QHotkey INTERFACE ${QHOTKEY_INCLUDE_DIR})
-target_link_libraries(QHotkey INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/lib/QHotkey/qhotkey.lib)
+target_link_libraries(QHotkey INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/lib/QHotkey/qhotkey_static_release.lib)
 
 # 添加 QHotkey 头文件路径
 include_directories(${QHOTKEY_INCLUDE_DIR})
